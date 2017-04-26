@@ -7,6 +7,7 @@ package com.linkedin.kafka.clients.largemessage;
 import com.linkedin.kafka.clients.consumer.ExtensibleConsumerRecord;
 import com.linkedin.kafka.clients.headers.HeaderUtils;
 import com.linkedin.kafka.clients.producer.ExtensibleProducerRecord;
+import com.linkedin.kafka.clients.utils.LiKafkaClientsUtils;
 import com.linkedin.kafka.clients.utils.TestUtils;
 import com.linkedin.kafka.clients.utils.UUIDFactory;
 import com.linkedin.kafka.clients.utils.UUIDFactoryImpl;
@@ -33,7 +34,7 @@ public class MessageSplitterTest {
   @Test
   public void testSplit() {
     TopicPartition tp = new TopicPartition("topic", 0);
-    UUID id = UUID.randomUUID();
+    UUID id = LiKafkaClientsUtils.randomUUID();
     UUIDFactory uuidFactory = new UUIDFactoryImpl() {
       @Override
       public UUID create() {

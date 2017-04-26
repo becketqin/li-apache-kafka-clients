@@ -116,44 +116,49 @@ public class LiKafkaConsumerImpl<K, V> implements LiKafkaConsumer<K, V> {
     _kafkaConsumer = new KafkaConsumer<>(configs.configForVanillaConsumer(),
                                          byteArrayDeserializer,
                                          byteArrayDeserializer);
+    try {
+      // Instantiate message assembler if needed.
+      int messageAssemblerCapacity = configs.getInt(LiKafkaConsumerConfig.MESSAGE_ASSEMBLER_BUFFER_CAPACITY_CONFIG);
+      int messageAssemblerExpirationOffsetGap = configs.getInt(LiKafkaConsumerConfig.MESSAGE_ASSEMBLER_EXPIRATION_OFFSET_GAP_CONFIG);
+      boolean exceptionOnMessageDropped = configs.getBoolean(LiKafkaConsumerConfig.EXCEPTION_ON_MESSAGE_DROPPED_CONFIG);
+      MessageAssembler assembler =
+          new MessageAssemblerImpl(messageAssemblerCapacity, messageAssemblerExpirationOffsetGap,
+                                   exceptionOnMessageDropped);
 
-    // Instantiate message assembler if needed.
-    int messageAssemblerCapacity = configs.getInt(LiKafkaConsumerConfig.MESSAGE_ASSEMBLER_BUFFER_CAPACITY_CONFIG);
-    int messageAssemblerExpirationOffsetGap = configs.getInt(LiKafkaConsumerConfig.MESSAGE_ASSEMBLER_EXPIRATION_OFFSET_GAP_CONFIG);
-    boolean exceptionOnMessageDropped = configs.getBoolean(LiKafkaConsumerConfig.EXCEPTION_ON_MESSAGE_DROPPED_CONFIG);
-    MessageAssembler assembler = new MessageAssemblerImpl(messageAssemblerCapacity, messageAssemblerExpirationOffsetGap,
-                                                          exceptionOnMessageDropped);
+      // Instantiate delivered message offset tracker if needed.
+      int maxTrackedMessagesPerPartition = configs.getInt(LiKafkaConsumerConfig.MAX_TRACKED_MESSAGES_PER_PARTITION_CONFIG);
+      DeliveredMessageOffsetTracker messageOffsetTracker = new DeliveredMessageOffsetTracker(maxTrackedMessagesPerPartition);
 
-    // Instantiate delivered message offset tracker if needed.
-    int maxTrackedMessagesPerPartition = configs.getInt(LiKafkaConsumerConfig.MAX_TRACKED_MESSAGES_PER_PARTITION_CONFIG);
-    DeliveredMessageOffsetTracker messageOffsetTracker = new DeliveredMessageOffsetTracker(maxTrackedMessagesPerPartition);
+      // Instantiate auditor if needed.
+      _auditor = consumerAuditor != null ? consumerAuditor
+          : configs.getConfiguredInstance(LiKafkaConsumerConfig.AUDITOR_CLASS_CONFIG, Auditor.class);
+      _auditor.configure(configs.originals());
+      _auditor.start();
 
-    // Instantiate auditor if needed.
-    _auditor = consumerAuditor != null ? consumerAuditor :
-        configs.getConfiguredInstance(LiKafkaConsumerConfig.AUDITOR_CLASS_CONFIG, Auditor.class);
-    _auditor.configure(configs.originals());
-    _auditor.start();
+      // Instantiate key and value deserializer if needed.
+      _keyDeserializer = keyDeserializer != null ? keyDeserializer
+          : configs.getConfiguredInstance(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, Deserializer.class);
+      _keyDeserializer.configure(configs.originals(), true);
+      _valueDeserializer = valueDeserializer != null ? valueDeserializer
+          : configs.getConfiguredInstance(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, Deserializer.class);
+      _valueDeserializer.configure(configs.originals(), false);
 
-    // Instantiate key and value deserializer if needed.
-    _keyDeserializer = keyDeserializer != null ? keyDeserializer :
-        configs.getConfiguredInstance(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, Deserializer.class);
-    _keyDeserializer.configure(configs.originals(), true);
-    _valueDeserializer = valueDeserializer != null ? valueDeserializer :
-        configs.getConfiguredInstance(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, Deserializer.class);
-    _valueDeserializer.configure(configs.originals(), false);
+      // Instantiate consumer record processor
+      _consumerRecordsProcessor = new ConsumerRecordsProcessor(assembler, messageOffsetTracker);
 
-    // Instantiate consumer record processor
-    _consumerRecordsProcessor = new ConsumerRecordsProcessor(assembler, messageOffsetTracker);
+      // Instantiate consumer rebalance listener
+      _consumerRebalanceListener =
+          new LiKafkaConsumerRebalanceListener<>(_consumerRecordsProcessor, this, _autoCommitEnabled);
 
-    // Instantiate consumer rebalance listener
-    _consumerRebalanceListener = new LiKafkaConsumerRebalanceListener<>(_consumerRecordsProcessor,
-                                                                        this, _autoCommitEnabled);
+      // Instantiate offset commit callback.
+      _offsetCommitCallback = new LiKafkaOffsetCommitCallback();
 
-    // Instantiate offset commit callback.
-    _offsetCommitCallback = new LiKafkaOffsetCommitCallback();
-
-    _headerDeserializer = configs.getConfiguredInstance(LiKafkaConsumerConfig.HEADER_DESERIALIZER_CLASS,
-      HeaderDeserializer.class);
+      _headerDeserializer =
+          configs.getConfiguredInstance(LiKafkaConsumerConfig.HEADER_DESERIALIZER_CLASS, HeaderDeserializer.class);
+    } catch (Exception e) {
+      _kafkaConsumer.close();
+      throw e;
+    }
   }
 
   @Override

@@ -14,6 +14,7 @@ import com.linkedin.kafka.clients.producer.LiKafkaProducer;
 import com.linkedin.kafka.clients.producer.LiKafkaProducerImpl;
 import com.linkedin.kafka.clients.headers.DefaultHeaderSerializer;
 import com.linkedin.kafka.clients.headers.HeaderSerializer;
+import com.linkedin.kafka.clients.utils.LiKafkaClientsUtils;
 import com.linkedin.kafka.clients.utils.TestUtils;
 import com.linkedin.kafka.clients.utils.UUIDFactory;
 import com.linkedin.kafka.clients.utils.UUIDFactoryImpl;
@@ -875,7 +876,7 @@ public class LiKafkaConsumerIntegrationTest extends AbstractKafkaClientsIntegrat
         // The message size is set to 100 - 1124, So we should have most of the messages to be large messages
         // while still have some ordinary size messages.
         int messageSize = 100 + _random.nextInt(1024);
-        final String uuid = UUID.randomUUID().toString().replace("-", "");
+        final String uuid = LiKafkaClientsUtils.randomUUID().toString().replace("-", "");
         final String message = uuid + TestUtils.getRandomString(messageSize);
 
         _producer.send(new ProducerRecord<String, String>(_topic, null, (long) i, null, message),

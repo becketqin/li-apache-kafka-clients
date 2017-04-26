@@ -6,6 +6,7 @@ package com.linkedin.kafka.clients.largemessage;
 
 import com.linkedin.kafka.clients.largemessage.errors.InvalidSegmentException;
 import com.linkedin.kafka.clients.largemessage.errors.LargeMessageDroppedException;
+import com.linkedin.kafka.clients.utils.LiKafkaClientsUtils;
 import com.linkedin.kafka.clients.utils.TestUtils;
 import org.apache.kafka.common.TopicPartition;
 import org.testng.annotations.Test;
@@ -28,7 +29,7 @@ public class LargeMessageBufferPoolTest {
     LargeMessageBufferPool pool = new LargeMessageBufferPool(30, 20, true);
 
     TopicPartition tp = new TopicPartition("topic", 0);
-    UUID messageId0 = UUID.randomUUID();
+    UUID messageId0 = LiKafkaClientsUtils.randomUUID();
 
     long offset = 0;
     LargeMessageSegment m0Seg0 = TestUtils.createLargeMessageSegment(messageId0, 0, 3, 25, 10);
@@ -71,8 +72,8 @@ public class LargeMessageBufferPoolTest {
     LargeMessageBufferPool pool1 = new LargeMessageBufferPool(50, 20, false);
 
     TopicPartition tp = new TopicPartition("topic", 0);
-    UUID messageId0 = UUID.randomUUID();
-    UUID messageId1 = UUID.randomUUID();
+    UUID messageId0 = LiKafkaClientsUtils.randomUUID();
+    UUID messageId1 = LiKafkaClientsUtils.randomUUID();
 
     long offset = 0;
     LargeMessageSegment m0Seg0 = TestUtils.createLargeMessageSegment(messageId0, 0, 3, 50, 20);
@@ -108,9 +109,9 @@ public class LargeMessageBufferPoolTest {
     LargeMessageBufferPool pool = new LargeMessageBufferPool(30, 20, false);
 
     TopicPartition tp = new TopicPartition("topic", 0);
-    UUID messageId0 = UUID.randomUUID();
-    UUID messageId1 = UUID.randomUUID();
-    UUID messageId2 = UUID.randomUUID();
+    UUID messageId0 = LiKafkaClientsUtils.randomUUID();
+    UUID messageId1 = LiKafkaClientsUtils.randomUUID();
+    UUID messageId2 = LiKafkaClientsUtils.randomUUID();
     long offset = 0;
     LargeMessageSegment m0Seg0 = TestUtils.createLargeMessageSegment(messageId0, 0, 3, 25, 10);
     LargeMessageSegment m0Seg1 = TestUtils.createLargeMessageSegment(messageId0, 1, 3, 25, 10);
@@ -167,7 +168,7 @@ public class LargeMessageBufferPoolTest {
 
   @Test(expectedExceptions = InvalidSegmentException.class)
   public void testSequenceNumberOutOfRange() {
-    UUID messageId = UUID.randomUUID();
+    UUID messageId = LiKafkaClientsUtils.randomUUID();
     TestUtils.createLargeMessageSegment(messageId, 3, 3, 25, 5);
   }
 
@@ -178,7 +179,7 @@ public class LargeMessageBufferPoolTest {
 
   @Test
   public void testSegmentSizeTooLarge() {
-    UUID messageId = UUID.randomUUID();
+    UUID messageId = LiKafkaClientsUtils.randomUUID();
     TopicPartition tp = new TopicPartition("topic", 0);
     LargeMessageBufferPool pool = new LargeMessageBufferPool(30, 20, false);
     LargeMessageSegment segment = TestUtils.createLargeMessageSegment(messageId, 2, 3, 25, 30);
@@ -192,7 +193,7 @@ public class LargeMessageBufferPoolTest {
 
   @Test(expectedExceptions = InvalidSegmentException.class)
   public void testOutOfOrderSegment() {
-    UUID messageId = UUID.randomUUID();
+    UUID messageId = LiKafkaClientsUtils.randomUUID();
     TopicPartition tp = new TopicPartition("topic", 0);
     LargeMessageBufferPool pool = new LargeMessageBufferPool(30, 20, false);
     LargeMessageSegment segment = TestUtils.createLargeMessageSegment(messageId, 2, 3, 25, 10);
@@ -206,8 +207,8 @@ public class LargeMessageBufferPoolTest {
 
     TopicPartition tp0 = new TopicPartition("topic", 0);
     TopicPartition tp1 = new TopicPartition("topic", 1);
-    UUID messageId0 = UUID.randomUUID();
-    UUID messageId1 = UUID.randomUUID();
+    UUID messageId0 = LiKafkaClientsUtils.randomUUID();
+    UUID messageId1 = LiKafkaClientsUtils.randomUUID();
 
     long offset = 0;
     LargeMessageSegment m0Seg0 = TestUtils.createLargeMessageSegment(messageId0, 0, 3, 25, 10);

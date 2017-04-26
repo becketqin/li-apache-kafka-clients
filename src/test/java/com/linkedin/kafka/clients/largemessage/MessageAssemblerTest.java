@@ -6,6 +6,7 @@ package com.linkedin.kafka.clients.largemessage;
 
 import com.linkedin.kafka.clients.consumer.ExtensibleConsumerRecord;
 import com.linkedin.kafka.clients.headers.HeaderUtils;
+import com.linkedin.kafka.clients.utils.LiKafkaClientsUtils;
 import org.apache.kafka.common.TopicPartition;
 import org.testng.annotations.Test;
 
@@ -24,7 +25,7 @@ public class MessageAssemblerTest {
     // Create serializer/deserializers.
     byte[] messageBytes = "message".getBytes();
 
-    LargeMessageSegment largeMessageSegment = new LargeMessageSegment(UUID.randomUUID(), 0, 1, messageBytes.length, true, ByteBuffer.wrap(messageBytes));
+    LargeMessageSegment largeMessageSegment = new LargeMessageSegment(LiKafkaClientsUtils.randomUUID(), 0, 1, messageBytes.length, true, ByteBuffer.wrap(messageBytes));
     ExtensibleConsumerRecord<byte[], byte[]> consumerRecord =
         new ExtensibleConsumerRecord<byte[], byte[]>("topic", 0, 0, 0, null, 0, 0, 0, "key".getBytes(), messageBytes);
     consumerRecord.header(HeaderUtils.LARGE_MESSAGE_SEGMENT_HEADER, largeMessageSegment.segmentHeader());
